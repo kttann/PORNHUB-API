@@ -19,31 +19,16 @@ const scraper_related_videos_options = {
 
 module.exports = {
 	scraper_video_informations: (source, keys) => {
+		// {<resolution>: <url>,
+		//  <resolution>: <url>],
+		//   ... }
 		let rsl = {};
 
 		if (keys.includes(consts_global.keys.DOWNLOAD_URLS)) {
-			const matches = source.match(/(?<=\*\/)\w+/g);
-			const urls = [];
-			for (const match of matches) {
-				const regex = new RegExp('(?<=' + match + '=")[^;]+(?=")', 'g');
-				const value = source.match(regex)[0].replace(/[" +]/g, '');
-
-				if (value.startsWith('https')) {
-					if (urls.length === 4) {
-						break;
-					}
-
-					urls.push(value);
-				} else {
-					urls[urls.length - 1] += value;
-				}
-			}
-
-			rsl = urls.map(x => {
-				// Sometime PH does not provide a resolution, meaning the link is broken
-				const resolution = x.match(/(?<=_|\/)\d*P(?=_)/g);
-				return resolution !== null && resolution.length > 0 ? [x.match(/(?<=_|\/)\d*P(?=_)/g)[0], x] : null;
-			}).filter(x => x !== null);
+			const theMatch = source.match(/.*flashvars_.*? = (.*?);/);
+			const mediaDefinitions =
+				JSON.parse(theMatch[1]).mediaDefinitions.filter(m => typeof m.quality === 'string');
+			rsl = mediaDefinitions.map(m => [m.quality, m.videoUrl]);
 			rsl = Object.fromEntries(rsl);
 		}
 
