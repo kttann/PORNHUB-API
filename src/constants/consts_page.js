@@ -41,7 +41,7 @@ module.exports = {
 		RANK: 'innerHTML'
 	},
 	page_selectors: {
-		TITLE: '.title-container .title .inlineFree',
+		TITLE: '.inlineFree',
 		VIEWS: '.count',
 		UP_VOTES: '.votesUp',
 		DOWN_VOTES: '.votesDown',
