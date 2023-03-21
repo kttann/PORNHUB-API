@@ -2,6 +2,7 @@ const utils = require('./utils');
 const utils_scrap = require('./helpers/utils_scrap');
 const consts_global = require('./constants/consts_global');
 const consts_page = require('./constants/consts_page');
+const {DownloadUrlExtractor, SimpleDownloadUrlExtractor, CommentsSeparatedDownloadUrlExtractor, isValidDownloadUrls} = require('./download-url-extractor')
 
 const scraper_comments_options = {
 	key: consts_global.keys.COMMENTS,
@@ -17,19 +18,23 @@ const scraper_related_videos_options = {
 	attributs: consts_page.page_related_videos_element_attributs
 };
 
+const downloadUrlExtractors = [
+	new SimpleDownloadUrlExtractor(),
+	new CommentsSeparatedDownloadUrlExtractor()
+];
+
 module.exports = {
 	scraper_video_informations: (source, keys) => {
-		// {<resolution>: <url>,
-		//  <resolution>: <url>],
-		//   ... }
 		let rsl = {};
 
 		if (keys.includes(consts_global.keys.DOWNLOAD_URLS)) {
-			const theMatch = source.match(/.*flashvars_.*? = (.*?);/);
-			const mediaDefinitions =
-				JSON.parse(theMatch[1]).mediaDefinitions.filter(m => typeof m.quality === 'string');
-			rsl = mediaDefinitions.map(m => [m.quality, m.videoUrl]);
-			rsl = Object.fromEntries(rsl);
+			const allValidUrls = downloadUrlExtractors
+				.map(e => e.extract(source))
+				.filter(rsl => isValidDownloadUrls(rsl));
+
+			if (allValidUrls.length > 0) {
+				rsl = allValidUrls[0];
+			}
 		}
 
 		return Object.keys(rsl).length > 0 ? rsl : null;
