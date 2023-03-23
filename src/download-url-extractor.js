@@ -12,11 +12,14 @@ class DownloadUrlExtractor {
 class SimpleDownloadUrlExtractor extends DownloadUrlExtractor {
   extract(source) {
     const theMatch = source.match(/.*flashvars_.*? = (.*?);/);
+    if (theMatch === null || theMatch === undefined) {
+      return {};
+    }
+
     const mediaDefinitions =
       JSON.parse(theMatch[1]).mediaDefinitions
-        .filter(m => typeof m.quality === 'string')
-        .map(q => `${q}P`);
-    let rsl = mediaDefinitions.map(m => [m.quality, m.videoUrl]);
+        .filter(m => typeof m.quality === 'string');
+    let rsl = mediaDefinitions.map(m => [`${m.quality}P`, m.videoUrl.toString()]);
     rsl = Object.fromEntries(rsl);
 
     return rsl;
@@ -27,6 +30,10 @@ class CommentsSeparatedDownloadUrlExtractor extends DownloadUrlExtractor {
   extract(source) {
     const matches = source.match(/(?<=\*\/)\w+/g);
     const urls = [];
+    if (matches === null || matches === undefined) {
+      return {};
+    }
+
     for (const match of matches) {
       const regex = new RegExp('(?<=' + match + '=")[^;]+(?=")', 'g');
       const value = source.match(regex)[0].replace(/[" +]/g, '');
