@@ -11,7 +11,7 @@ class DownloadUrlExtractor {
 
 class SimpleDownloadUrlExtractor extends DownloadUrlExtractor {
   extract(source) {
-    const theMatch = source.match(/.*flashvars_.*? = (.*?);/);
+    const theMatch = source.match(/.*flashvars_.*? = (.*?\});/);
     if (theMatch === null || theMatch === undefined) {
       return {};
     }
